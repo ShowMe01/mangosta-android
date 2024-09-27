@@ -17,7 +17,7 @@ import org.jxmpp.jid.EntityBareJid;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.models.User;
@@ -58,22 +58,22 @@ public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.View
     }
 
     public static class UserViewHolder extends UsersListAdapter.ViewHolder {
-        @Bind(R.id.imageUserAvatar)
+        @BindView(R.id.imageUserAvatar)
         ImageView imageUserAvatar;
 
-        @Bind(R.id.textUserLogin)
+        @BindView(R.id.textUserLogin)
         TextView textUserLogin;
 
-        @Bind(R.id.textUserName)
+        @BindView(R.id.textUserName)
         TextView textUserName;
 
-        @Bind(R.id.addUserButton)
+        @BindView(R.id.addUserButton)
         Button addUserButton;
 
-        @Bind(R.id.removeUserButton)
+        @BindView(R.id.removeUserButton)
         Button removeUserButton;
 
-        @Bind(R.id.imageConnectionStatus)
+        @BindView(R.id.imageConnectionStatus)
         ImageView imageConnectionStatus;
 
         private Context mContext;
@@ -154,7 +154,7 @@ public class UsersListAdapter extends RecyclerView.Adapter<UsersListAdapter.View
 
     public static class ProgressViewHolder extends UsersListAdapter.ViewHolder {
 
-        @Bind(R.id.progressLoadingItem)
+        @BindView(R.id.progressLoadingItem)
         ProgressBar progressBar;
 
         public ProgressViewHolder(View view) {

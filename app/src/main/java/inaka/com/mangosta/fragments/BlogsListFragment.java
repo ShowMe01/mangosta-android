@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.adapters.BlogPostsListAdapter;
@@ -22,10 +22,10 @@ import inaka.com.mangosta.realm.RealmManager;
 
 public class BlogsListFragment extends Fragment {
 
-    @Bind(R.id.blogsRecyclerView)
+    @BindView(R.id.blogsRecyclerView)
     RecyclerView blogsRecyclerView;
 
-    @Bind(R.id.socialMediaSwipeRefreshLayout)
+    @BindView(R.id.socialMediaSwipeRefreshLayout)
     SwipeRefreshLayout socialMediaSwipeRefreshLayout;
 
     List<BlogPost> mBlogPosts;

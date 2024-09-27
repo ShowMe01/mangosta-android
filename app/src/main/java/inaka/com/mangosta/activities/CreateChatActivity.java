@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
 import inaka.com.mangosta.R;
@@ -43,25 +43,25 @@ import inaka.com.mangosta.xmpp.XMPPUtils;
 
 public class CreateChatActivity extends BaseActivity {
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.searchUserButton)
+    @BindView(R.id.searchUserButton)
     ImageButton createChatSearchUserButton;
 
-    @Bind(R.id.searchUserEditText)
+    @BindView(R.id.searchUserEditText)
     EditText createChatSearchUserEditText;
 
-    @Bind(R.id.searchUserProgressBar)
+    @BindView(R.id.searchUserProgressBar)
     ProgressBar createChatSearchUserProgressBar;
 
-    @Bind(R.id.searchResultRecyclerView)
+    @BindView(R.id.searchResultRecyclerView)
     RecyclerView createChatSearchResultRecyclerView;
 
-    @Bind(R.id.membersRecyclerView)
+    @BindView(R.id.membersRecyclerView)
     RecyclerView createChatMembersRecyclerView;
 
-    @Bind(R.id.continueFloatingButton)
+    @BindView(R.id.continueFloatingButton)
     FloatingActionButton continueFloatingButton;
 
     private List<User> mSearchUsers;
@@ -75,7 +75,7 @@ public class CreateChatActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_chat);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);

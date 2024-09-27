@@ -18,7 +18,7 @@ import com.nanotasks.Tasks;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.adapters.UsersListAdapter;
@@ -31,16 +31,16 @@ import inaka.com.mangosta.xmpp.XMPPUtils;
 
 public class ChatMembersActivity extends BaseActivity {
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.editChatMembersFloatingButton)
+    @BindView(R.id.editChatMembersFloatingButton)
     FloatingActionButton editChatMembersFloatingButton;
 
-    @Bind(R.id.chatMembersRecyclerView)
+    @BindView(R.id.chatMembersRecyclerView)
     RecyclerView chatMembersRecyclerView;
 
-    @Bind(R.id.progressLoading)
+    @BindView(R.id.progressLoading)
     ProgressBar progressLoading;
 
     List<User> mMembers;
@@ -56,7 +56,7 @@ public class ChatMembersActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_members);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);

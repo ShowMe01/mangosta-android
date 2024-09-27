@@ -14,7 +14,7 @@ import com.getbase.floatingactionbutton.FloatingActionButton;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.adapters.ViewPagerMainMenuAdapter;
@@ -29,16 +29,16 @@ import inaka.com.mangosta.xmpp.XMPPUtils;
 
 public class MainMenuActivity extends BaseActivity {
 
-    @Bind(R.id.slidingTabStrip)
+    @BindView(R.id.slidingTabStrip)
     PagerSlidingTabStrip mSlidingTabStrip;
 
-    @Bind(R.id.viewpagerMainMenu)
+    @BindView(R.id.viewpagerMainMenu)
     ViewPager mViewpagerMainMenu;
 
-    @Bind(R.id.createNewChatFloatingButton)
+    @BindView(R.id.createNewChatFloatingButton)
     FloatingActionButton createNewChatFloatingButton;
 
-    @Bind(R.id.createNewBlogFloatingButton)
+    @BindView(R.id.createNewBlogFloatingButton)
     FloatingActionButton createNewBlogFloatingButton;
 
     public boolean mRoomsLoaded = false;
@@ -54,7 +54,7 @@ public class MainMenuActivity extends BaseActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         String tabTitles[] = new String[]{
                 getResources().getString(R.string.title_tab_chat),

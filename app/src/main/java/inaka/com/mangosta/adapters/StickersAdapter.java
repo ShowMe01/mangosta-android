@@ -12,7 +12,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.models.Event;
@@ -52,7 +52,7 @@ public class StickersAdapter extends RecyclerView.Adapter<StickersAdapter.Sticke
 
     public static class StickerViewHolder extends StickersAdapter.ViewHolder {
 
-        @Bind(R.id.stickerImageView)
+        @BindView(R.id.stickerImageView)
         ImageView stickerImageView;
 
         private Context mContext;

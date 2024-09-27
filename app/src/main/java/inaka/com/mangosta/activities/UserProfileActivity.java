@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.astuetz.PagerSlidingTabStrip;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.chat.RoomsListManager;
@@ -20,22 +20,22 @@ import inaka.com.mangosta.xmpp.XMPPUtils;
 
 public class UserProfileActivity extends BaseActivity {
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.slidingTabStrip)
+    @BindView(R.id.slidingTabStrip)
     PagerSlidingTabStrip slidingTabStrip;
 
-    @Bind(R.id.viewpagerProfile)
+    @BindView(R.id.viewpagerProfile)
     ViewPager viewpagerProfile;
 
-    @Bind(R.id.textNameUserProfile)
+    @BindView(R.id.textNameUserProfile)
     TextView textNameUserProfile;
 
-    @Bind(R.id.textLoginUserProfile)
+    @BindView(R.id.textLoginUserProfile)
     TextView textLoginUserProfile;
 
-    @Bind(R.id.imageAvatarUserProfile)
+    @BindView(R.id.imageAvatarUserProfile)
     ImageView imageAvatarUserProfile;
 
     public final static String USER_PARAMETER = "user";
@@ -47,7 +47,7 @@ public class UserProfileActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);

@@ -19,8 +19,9 @@ import com.nanotasks.BackgroundWork;
 import com.nanotasks.Completion;
 import com.nanotasks.Tasks;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.fragments.LoginDialogFragment;
 import inaka.com.mangosta.services.XMPPSessionService;
@@ -29,10 +30,12 @@ import inaka.com.mangosta.xmpp.XMPPSession;
 
 public class SplashActivity extends FragmentActivity {
 
-    @Bind(R.id.progressLoading)
+    @BindView(R.id.progressLoading)
     ProgressBar progressLoading;
 
     public static final int WAIT_TIME = 1500;
+
+    protected Unbinder unbinder;
 
     private XMPPSessionService xmppSessionService;
     protected ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -62,7 +65,7 @@ public class SplashActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         if (Build.VERSION.SDK_INT >= 23) {
             progressLoading.getIndeterminateDrawable().setColorFilter(this.getColor(R.color.colorPrimary),
@@ -136,6 +139,14 @@ public class SplashActivity extends FragmentActivity {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             fragmentTransaction.add(fragment, getString(R.string.title_login));
             fragmentTransaction.commitAllowingStateLoss();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (unbinder != null) {
+            unbinder.unbind();
         }
     }
 

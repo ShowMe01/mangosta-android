@@ -53,7 +53,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import inaka.com.mangosta.R;
 import inaka.com.mangosta.adapters.ChatMessagesAdapter;
@@ -80,31 +80,31 @@ import rx.functions.Action1;
 
 public class ChatActivity extends BaseActivity {
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.chatMessagesRecyclerView)
+    @BindView(R.id.chatMessagesRecyclerView)
     RecyclerView chatMessagesRecyclerView;
 
-    @Bind(R.id.stickersRecyclerView)
+    @BindView(R.id.stickersRecyclerView)
     RecyclerView stickersRecyclerView;
 
-    @Bind(R.id.chatSendMessageButton)
+    @BindView(R.id.chatSendMessageButton)
     ImageButton chatSendMessageButton;
 
-    @Bind(R.id.stickersMenuImageButton)
+    @BindView(R.id.stickersMenuImageButton)
     ImageButton stickersMenuImageButton;
 
-    @Bind(R.id.chatSendMessageEditText)
+    @BindView(R.id.chatSendMessageEditText)
     EditText chatSendMessageEditText;
 
-    @Bind(R.id.loadMessagesSwipeRefreshLayout)
+    @BindView(R.id.loadMessagesSwipeRefreshLayout)
     SwipeRefreshLayout loadMessagesSwipeRefreshLayout;
 
-    @Bind(R.id.chatTypingTextView)
+    @BindView(R.id.chatTypingTextView)
     TextView chatTypingTextView;
 
-    @Bind(R.id.scrollDownImageButton)
+    @BindView(R.id.scrollDownImageButton)
     ImageButton scrollDownImageButton;
 
     private RoomManager mRoomManager;
@@ -153,7 +153,7 @@ public class ChatActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
