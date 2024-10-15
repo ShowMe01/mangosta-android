@@ -2,6 +2,7 @@ package inaka.com.mangosta.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -29,8 +30,8 @@ import inaka.com.mangosta.xmpp.XMPPUtils;
 
 public class MainMenuActivity extends BaseActivity {
 
-    @BindView(R.id.slidingTabStrip)
-    PagerSlidingTabStrip mSlidingTabStrip;
+//    @BindView(R.id.slidingTabStrip)
+//    PagerSlidingTabStrip mSlidingTabStrip;
 
     @BindView(R.id.viewpagerMainMenu)
     ViewPager mViewpagerMainMenu;
@@ -41,6 +42,8 @@ public class MainMenuActivity extends BaseActivity {
     @BindView(R.id.createNewBlogFloatingButton)
     FloatingActionButton createNewBlogFloatingButton;
 
+    @BindView(R.id.tabLayout)
+    TabLayout tabLayout;
     public boolean mRoomsLoaded = false;
 
     public static String NEW_BLOG_POST = "newBlogPost";
@@ -61,7 +64,8 @@ public class MainMenuActivity extends BaseActivity {
                 getResources().getString(R.string.title_tab_social)};
 
         mViewpagerMainMenu.setAdapter(new ViewPagerMainMenuAdapter(getSupportFragmentManager(), tabTitles));
-        mSlidingTabStrip.setViewPager(mViewpagerMainMenu);
+//        mSlidingTabStrip.setViewPager(mViewpagerMainMenu);
+        tabLayout.setupWithViewPager(mViewpagerMainMenu);
 
         createNewChatFloatingButton.setIcon(R.mipmap.ic_action_create_new_chat_light);
         createNewBlogFloatingButton.setIcon(R.mipmap.ic_add_blog);

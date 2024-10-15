@@ -1,14 +1,13 @@
 package inaka.com.mangosta.activities;
 
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.astuetz.PagerSlidingTabStrip;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -23,8 +22,10 @@ public class UserProfileActivity extends BaseActivity {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.slidingTabStrip)
-    PagerSlidingTabStrip slidingTabStrip;
+    //    @BindView(R.id.slidingTabStrip)
+//    PagerSlidingTabStrip slidingTabStrip;
+    @BindView(R.id.tabLayout)
+    TabLayout tabLayout;
 
     @BindView(R.id.viewpagerProfile)
     ViewPager viewpagerProfile;

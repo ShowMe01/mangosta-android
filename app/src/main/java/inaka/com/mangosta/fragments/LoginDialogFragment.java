@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,8 +54,8 @@ public class LoginDialogFragment extends DialogFragment {
 
         toolbar.setTitle(getString(R.string.title_login));
 
-        String userName = "test.user";
-        String password = "9xpW9mmUenFgMjay";
+        String userName = "a1";
+        String password = "123456";
 
         loginUserNameEditText.setText(userName);
         loginUserNameEditText.setSelection(userName.length());
@@ -97,6 +98,7 @@ public class LoginDialogFragment extends DialogFragment {
                 XMPPSession.getInstance().getXMPPConnection().disconnect();
                 XMPPSession.clearInstance();
                 Toast.makeText(context, getString(R.string.error_login), Toast.LENGTH_SHORT).show();
+                Log.e("CMB", "onError: " + e);
             }
         });
     }

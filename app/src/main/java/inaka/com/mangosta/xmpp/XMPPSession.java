@@ -133,8 +133,10 @@ public class XMPPSession {
     private static final boolean XMPP_DEBUG_MODE = true;
     private static final String XMPP_TAG = "XMPP";
 
-    public static final String SERVER_NAME = "xmpp.erlang-solutions.com";
-    public static final String SERVICE_NAME = "erlang-solutions.com";
+//    public static final String SERVER_NAME = "xmpp.erlang-solutions.com";
+    public static final String SERVER_NAME = "54.254.118.48";
+//    public static final String SERVICE_NAME = "erlang-solutions.com";
+    public static final String SERVICE_NAME = "aws-dev.com";
     public static final String MUC_LIGHT_SERVICE_NAME = "muclight.erlang-solutions.com";
 
     public static final int REPLY_TIMEOUT = 5000;
