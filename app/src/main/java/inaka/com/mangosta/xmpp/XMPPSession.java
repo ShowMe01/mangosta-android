@@ -261,6 +261,7 @@ public class XMPPSession {
         mReconnectionManager.setReconnectionPolicy(ReconnectionManager.ReconnectionPolicy.RANDOM_INCREASING_DELAY);
         mReconnectionManager.enableAutomaticReconnection();
 
+        // handle all Stanza and subscribe
         StanzaListener mainStanzaListener = new StanzaListener() {
             @Override
             public void processPacket(Stanza stanza) throws SmackException.NotConnectedException {
@@ -364,6 +365,7 @@ public class XMPPSession {
             }
         };
 
+        // join the group chat when receive multi chat invitation
         MultiUserChatManager.getInstanceFor(mXMPPConnection).addInvitationListener(new InvitationListener() {
             @Override
             public void invitationReceived(XMPPConnection conn, MultiUserChat multiUserChat, EntityFullJid jid, String inviter, String reason, Message message, MUCUser.Invite invite) {
@@ -596,21 +598,9 @@ public class XMPPSession {
     private KeyStore configKeyStore(XMPPTCPConnectionConfiguration.Builder builder) throws KeyStoreException {
         KeyStore keyStore;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            builder.setKeystorePath(null);
-            builder.setKeystoreType("AndroidCAStore");
-            keyStore = KeyStore.getInstance("AndroidCAStore");
-        } else {
-            builder.setKeystoreType("BKS");
-            keyStore = KeyStore.getInstance("BKS");
-
-            String path = System.getProperty("javax.net.ssl.trustStore");
-            if (path == null)
-                path = System.getProperty("java.home") + File.separator + "etc"
-                        + File.separator + "security" + File.separator
-                        + "cacerts.bks";
-            builder.setKeystorePath(path);
-        }
+        builder.setKeystorePath(null);
+        builder.setKeystoreType("AndroidCAStore");
+        keyStore = KeyStore.getInstance("AndroidCAStore");
         return keyStore;
     }
 
@@ -914,6 +904,7 @@ public class XMPPSession {
         chatMessage.setRoomJid(chatRoomJID);
 
         // not saving messages with my affiliation changes to "none", and delete the chat in that case
+        // only messages from group chat have affiliation extension
         if (checkIfMyIsAffiliationNone(message)) {
             deleteChat(chatRoomJID);
             return;

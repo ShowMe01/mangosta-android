@@ -80,7 +80,7 @@ public class RoomsListManager {
             final inaka.com.mangosta.models.Chat chat = new inaka.com.mangosta.models.Chat(chatJid);
 
             if (save) {
-
+                // usually diff muc and single chat with jid name pattern
                 if (chatJid.contains(XMPPSession.MUC_LIGHT_SERVICE_NAME)) {
                     chat.setType(Chat.TYPE_MUC_LIGHT);
                     chat.setSortPosition(RealmManager.getInstance().getMUCLights().size());

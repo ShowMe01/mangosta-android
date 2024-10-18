@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:id="@+id/userItemMainLayout"
@@ -16,7 +17,7 @@
             android:id="@+id/imageUserAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_dialog_dialer"/>
+            android:src="@android:drawable/ic_dialog_dialer" />
 
         <RelativeLayout
             android:layout_width="0dp"
@@ -32,7 +33,7 @@
                 android:lines="1"
                 android:textColor="@color/colorAccent"
                 android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/textUserName"
@@ -40,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/textUserLogin"
                 android:lines="1"
-                android:textColor="@color/colorAccent"/>
+                android:textColor="@color/colorAccent" />
 
             <ImageView
                 android:id="@+id/imageConnectionStatus"
@@ -49,7 +50,7 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="2dp"
                 android:layout_toEndOf="@id/textUserLogin"
-                android:src="@mipmap/ic_disconnected"/>
+                android:src="@mipmap/ic_disconnected" />
 
         </RelativeLayout>
 
@@ -66,7 +67,8 @@
                 android:text="@string/add_user_to_chat"
                 android:textAllCaps="false"
                 android:textColor="@color/complete_white"
-                android:visibility="gone"/>
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <Button
                 android:id="@+id/removeUserButton"
@@ -76,7 +78,7 @@
                 android:text="@string/remove_user_from_chat"
                 android:textAllCaps="false"
                 android:textColor="@color/complete_white"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </FrameLayout>
 
@@ -86,6 +88,6 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_below="@id/userItemMainLayout"
-        android:background="@color/complete_white"/>
+        android:background="@color/complete_white" />
 
 </RelativeLayout>

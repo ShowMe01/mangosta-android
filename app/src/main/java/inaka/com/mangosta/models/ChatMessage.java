@@ -18,6 +18,7 @@ public class ChatMessage extends RealmObject {
     @PrimaryKey
     private String messageId;
     private String roomJid;
+    // who send this message
     private String userSender;
     private String content;
     private boolean unread;
