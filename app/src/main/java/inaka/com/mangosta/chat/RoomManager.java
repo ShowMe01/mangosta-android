@@ -133,7 +133,9 @@ public class RoomManager {
             MultiUserChatLight multiUserChatLight = XMPPSession.getInstance().getMUCLightManager().getMultiUserChatLight(JidCreate.from(chatRoom.getJid()).asEntityBareJidIfPossible());
             MUCLightRoomConfiguration configuration = multiUserChatLight.getConfiguration();
             chatRoom.setSubject(configuration.getSubject());
-        } catch (XmppStringprepException | SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException | InterruptedException e) {
+        } catch (XmppStringprepException | SmackException.NoResponseException |
+                 XMPPException.XMPPErrorException | SmackException.NotConnectedException |
+                 InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -304,7 +306,8 @@ public class RoomManager {
             try {
                 MultiUserChatLight multiUserChatLight = manager.getMultiUserChatLight(JidCreate.from(jid).asEntityBareJidIfPossible());
                 multiUserChatLight.sendMessage(message);
-            } catch (XmppStringprepException | InterruptedException | SmackException.NotConnectedException e) {
+            } catch (XmppStringprepException | InterruptedException |
+                     SmackException.NotConnectedException e) {
                 mListener.onError(e.getLocalizedMessage());
             } finally {
                 mListener.onMessageSent(message);
@@ -314,7 +317,8 @@ public class RoomManager {
             ChatManager chatManager = RoomsListManager.getInstance().getChatManager();
             try {
                 chatManager.createChat(JidCreate.from(jid).asEntityJidIfPossible()).sendMessage(message);
-            } catch (InterruptedException | XmppStringprepException | SmackException.NotConnectedException e) {
+            } catch (InterruptedException | XmppStringprepException |
+                     SmackException.NotConnectedException e) {
                 mListener.onError(e.getLocalizedMessage());
             } finally {
                 mListener.onMessageSent(message);
@@ -385,7 +389,9 @@ public class RoomManager {
             affiliations.put(jid, MUCLightAffiliation.member);
 
             mucLight.changeAffiliations(affiliations);
-        } catch (XmppStringprepException | InterruptedException | SmackException.NotConnectedException | SmackException.NoResponseException | XMPPException.XMPPErrorException e) {
+        } catch (XmppStringprepException | InterruptedException |
+                 SmackException.NotConnectedException | SmackException.NoResponseException |
+                 XMPPException.XMPPErrorException e) {
             e.printStackTrace();
         }
     }
@@ -401,7 +407,9 @@ public class RoomManager {
             affiliations.put(jid, MUCLightAffiliation.none);
 
             mucLight.changeAffiliations(affiliations);
-        } catch (XmppStringprepException | InterruptedException | SmackException.NotConnectedException | SmackException.NoResponseException | XMPPException.XMPPErrorException e) {
+        } catch (XmppStringprepException | InterruptedException |
+                 SmackException.NotConnectedException | SmackException.NoResponseException |
+                 XMPPException.XMPPErrorException e) {
             e.printStackTrace();
         }
     }

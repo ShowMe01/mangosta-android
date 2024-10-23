@@ -23,6 +23,14 @@ public class MessageNotifications {
 
     private static HashMap<String, Integer> mChatMessageCounters = new HashMap<>();
 
+    /**
+     * 创建消息通知
+     * 这个方法有2个问题：
+     *  1.方法太老，安卓高版本展示不了通知
+     *  2.依赖应用进程存活，不可能实现
+     * todo 后续换成firebase
+     * @param messageId
+     */
     public static void chatMessageNotification(String messageId) {
         // show notification only if the app is closed
         if (!MangostaApplication.getInstance().isClosed()) {

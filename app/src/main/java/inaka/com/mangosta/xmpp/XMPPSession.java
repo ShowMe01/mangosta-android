@@ -133,9 +133,9 @@ public class XMPPSession {
     private static final boolean XMPP_DEBUG_MODE = true;
     private static final String XMPP_TAG = "XMPP";
 
-//    public static final String SERVER_NAME = "xmpp.erlang-solutions.com";
+    //    public static final String SERVER_NAME = "xmpp.erlang-solutions.com";
     public static final String SERVER_NAME = "54.254.118.48";
-//    public static final String SERVICE_NAME = "erlang-solutions.com";
+    //    public static final String SERVICE_NAME = "erlang-solutions.com";
     public static final String SERVICE_NAME = "aws-dev.com";
     public static final String MUC_LIGHT_SERVICE_NAME = "muclight.erlang-solutions.com";
 
@@ -198,7 +198,8 @@ public class XMPPSession {
 
             config = builder.build();
 
-        } catch (KeyManagementException | KeyStoreException | NoSuchAlgorithmException | XmppStringprepException e) {
+        } catch (KeyManagementException | KeyStoreException | NoSuchAlgorithmException |
+                 XmppStringprepException e) {
             e.printStackTrace();
         }
 
@@ -250,7 +251,8 @@ public class XMPPSession {
                 mXMPPConnection.avoidTokenReconnection();
                 try {
                     mXMPPConnection.connect();
-                } catch (SmackException | IOException | XMPPException | InterruptedException exception) {
+                } catch (SmackException | IOException | XMPPException |
+                         InterruptedException exception) {
                     exception.printStackTrace();
                 }
             }
@@ -372,7 +374,9 @@ public class XMPPSession {
                 try {
                     String userName = XMPPUtils.fromJIDToUserName(Preferences.getInstance().getUserXMPPJid());
                     multiUserChat.join(Resourcepart.from(userName));
-                } catch (XmppStringprepException | SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException | InterruptedException | MultiUserChatException.NotAMucServiceException e) {
+                } catch (XmppStringprepException | SmackException.NoResponseException |
+                         XMPPException.XMPPErrorException | SmackException.NotConnectedException |
+                         InterruptedException | MultiUserChatException.NotAMucServiceException e) {
                     e.printStackTrace();
                 }
             }
@@ -477,7 +481,8 @@ public class XMPPSession {
         try {
             BoBData bobData = new BoBData(0, "image/png", bitMapData);
             getBoBManager().responseBoB(bobIQ, bobData);
-        } catch (InterruptedException | SmackException.NotConnectedException | SmackException.NotLoggedInException e) {
+        } catch (InterruptedException | SmackException.NotConnectedException |
+                 SmackException.NotLoggedInException e) {
             e.printStackTrace();
         }
     }
@@ -579,7 +584,8 @@ public class XMPPSession {
 
             preferences.setXmppOauthAccessToken(tbrTokens.getAccessToken());
             preferences.setXmppOauthRefreshToken(tbrTokens.getRefreshToken());
-        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | InterruptedException | SmackException.NotConnectedException e) {
+        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+                 InterruptedException | SmackException.NotConnectedException e) {
             e.printStackTrace();
         }
     }
@@ -1118,7 +1124,8 @@ public class XMPPSession {
             // subscribe to comments
             String myJIDString = getUser().toString();
             node.subscribe(myJIDString);
-        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException | InterruptedException e) {
+        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+                 SmackException.NotConnectedException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -1165,13 +1172,15 @@ public class XMPPSession {
                         return rowList.size() > 0;
                     }
 
-                } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException e) {
+                } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+                         SmackException.NotConnectedException e) {
                     e.printStackTrace();
                     return false;
                 }
 
 
-            } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException e) {
+            } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+                     SmackException.NotConnectedException e) {
                 e.printStackTrace();
                 return false;
             }

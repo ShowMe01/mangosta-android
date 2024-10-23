@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -276,6 +277,7 @@ public class ChatActivity extends BaseActivity {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                Log.d("TestRecyclerView", "onScrolled: dx: " + dx + " dy: " + dy);
                 manageScrollButtonVisibility();
                 loadMoreMessages(recyclerView, dy);
             }
@@ -284,8 +286,12 @@ public class ChatActivity extends BaseActivity {
         chatMessagesRecyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                cancelMessageNotificationsForChat();
-                mMessagesAdapter.notifyDataSetChanged();
+                Log.d("TestRecyclerView", "onTouch: ");
+                switch (motionEvent.getActionMasked()) {
+                    case MotionEvent.ACTION_UP:
+                        mMessagesAdapter.notifyDataSetChanged();
+                        break;
+                }
                 return false;
             }
         });
@@ -646,8 +652,8 @@ public class ChatActivity extends BaseActivity {
             Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_removed_from_contacts),
                     userNotContact.getLogin()), Toast.LENGTH_SHORT).show();
         } catch (SmackException.NotLoggedInException | InterruptedException |
-                SmackException.NotConnectedException | XMPPException.XMPPErrorException |
-                XmppStringprepException | SmackException.NoResponseException e) {
+                 SmackException.NotConnectedException | XMPPException.XMPPErrorException |
+                 XmppStringprepException | SmackException.NoResponseException e) {
             e.printStackTrace();
         }
     }
@@ -660,7 +666,9 @@ public class ChatActivity extends BaseActivity {
             setMenuChatWithContact();
             Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_added_to_contacts),
                     userContact.getLogin()), Toast.LENGTH_SHORT).show();
-        } catch (SmackException.NotLoggedInException | InterruptedException | SmackException.NotConnectedException | XMPPException.XMPPErrorException | XmppStringprepException | SmackException.NoResponseException e) {
+        } catch (SmackException.NotLoggedInException | InterruptedException |
+                 SmackException.NotConnectedException | XMPPException.XMPPErrorException |
+                 XmppStringprepException | SmackException.NoResponseException e) {
             e.printStackTrace();
         }
     }
@@ -916,6 +924,7 @@ public class ChatActivity extends BaseActivity {
     }
 
     private void loadArchivedMessages() {
+
         mChat = getChatFromRealm();
 
         if (mChat == null || !mChat.isValid()) {
@@ -1005,7 +1014,7 @@ public class ChatActivity extends BaseActivity {
                     @Override
                     public void run() {
                         if (!XMPPSession.isInstanceNull() && XMPPSession.getInstance().isConnectedAndAuthenticated()) {
-                            if (mMessages.size() == 0 && !mLeaving) {
+                            if (mMessages.isEmpty() && !mLeaving) {
                                 loadArchivedMessages();
                             }
                         }
@@ -1105,7 +1114,8 @@ public class ChatActivity extends BaseActivity {
                     return true;
                 }
             }
-        } catch (SmackException.NotLoggedInException | InterruptedException | SmackException.NotConnectedException e) {
+        } catch (SmackException.NotLoggedInException | InterruptedException |
+                 SmackException.NotConnectedException e) {
             e.printStackTrace();
         }
         return false;

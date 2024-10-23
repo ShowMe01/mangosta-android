@@ -1,8 +1,10 @@
 package inaka.com.mangosta.realm;
 
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import inaka.com.mangosta.chat.RoomsListManager;
@@ -14,7 +16,9 @@ import inaka.com.mangosta.utils.MangostaApplication;
 import inaka.com.mangosta.utils.Preferences;
 import inaka.com.mangosta.xmpp.XMPPUtils;
 import io.realm.Realm;
+import io.realm.RealmObjectSchema;
 import io.realm.RealmResults;
+import io.realm.RealmSchema;
 import io.realm.Sort;
 
 public class RealmManager {
@@ -380,4 +384,12 @@ public class RealmManager {
         getRealm().commitTransaction();
     }
 
+    public void exportAll() {
+        RealmSchema schema = getRealm().getSchema();
+        Set<RealmObjectSchema> set = schema.getAll();
+        // 遍历模型名
+        for (RealmObjectSchema realObject : set) {
+            String className = realObject.getClassName();
+        }
+    }
 }

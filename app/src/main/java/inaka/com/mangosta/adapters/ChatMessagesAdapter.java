@@ -56,6 +56,7 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
         mChat = chat;
     }
 
+
     @Override
     public int getItemViewType(int position) {
         int viewType;
@@ -334,7 +335,8 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
                                     realm.copyToRealmOrUpdate(chatMessage);
                                     realm.commitTransaction();
                                 }
-                            } catch (XmppStringprepException | InterruptedException | SmackException.NotConnectedException e) {
+                            } catch (XmppStringprepException | InterruptedException |
+                                     SmackException.NotConnectedException e) {
                                 e.printStackTrace();
                             } finally {
                                 realm.close();
