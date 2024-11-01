@@ -446,7 +446,7 @@ public class XMPPSession {
         receiveBlogPosts();
     }
 
-    private void uploadImageToServer(PendingImgMsg pendingImgMsg, String putUrl, Uri uri) {
+    private void uploadImageToServer(final PendingImgMsg pendingImgMsg, String putUrl, Uri uri) {
         // 从 Uri 获取文件
         ContentResolver contentResolver = MangostaApplication.getInstance().getContentResolver();
         File file = new File(FileUtils.getRealPathFromUri(contentResolver, uri)); // 替换为获取文件路径的实际方法
@@ -465,7 +465,12 @@ public class XMPPSession {
                 Log.d("SMACK", "uploadFileToServer: success " + response.body().toString());
                 pendingImgMsg.status = PendingImgMsg.UPLOADED;
                 updatePendingImgMsg(pendingImgMsg);
-                new Event(Event.Type.IMAGE_UPLOADED, pendingImgMsg).post();
+                MangostaApplication.getInstance().getCurrentActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new Event(Event.Type.IMAGE_UPLOADED, pendingImgMsg).post();
+                    }
+                });
             } else {
                 Log.d("SMACK", "uploadFileToServer: code: " + response.code() + " msg: " + response.message());
             }
