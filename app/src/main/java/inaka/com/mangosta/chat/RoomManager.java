@@ -44,6 +44,7 @@ import inaka.com.mangosta.utils.Preferences;
 import inaka.com.mangosta.xmpp.RosterManager;
 import inaka.com.mangosta.xmpp.XMPPSession;
 import inaka.com.mangosta.xmpp.XMPPUtils;
+import inaka.com.mangosta.xmpp.extension.OobExtension;
 import io.realm.Realm;
 
 
@@ -269,6 +270,28 @@ public class RoomManager {
 
     public void sendStickerMessage(String messageId, String jid, String content, int chatType) {
         sendMessage(messageId, jid, content, chatType, true);
+    }
+
+    public void sendImageMessage(final String messageId, final String jid, final String imageUrl, final int chatType) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Message message;
+
+                try {
+                    message = new Message(JidCreate.from(jid), imageUrl);
+                    OobExtension oobExtension = OobExtension.fromUrl(imageUrl);
+                    message.addExtension(oobExtension);
+                } catch (XmppStringprepException e) {
+                    mListener.onError(e.getLocalizedMessage());
+                    return;
+                }
+
+                message.setStanzaId(messageId);
+                sendMessageDependingOnType(message, jid, chatType);
+
+            }
+        }).start();
     }
 
     private void sendMessage(final String messageId, final String jid, final String content, final int chatType, final boolean isSticker) {

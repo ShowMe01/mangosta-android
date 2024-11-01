@@ -11,6 +11,7 @@ public class ChatMessage extends RealmObject {
     public static final int TYPE_ROOM_NAME_CHANGED = 1;
     public static final int TYPE_ROOM_CREATED = 2;
     public static final int TYPE_STICKER = 3;
+    public static final int TYPE_IMAGE = 4;
 
     public static final int STATUS_SENDING = 0;
     public static final int STATUS_SENT = 1;

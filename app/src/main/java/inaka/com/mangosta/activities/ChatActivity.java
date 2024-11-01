@@ -1,9 +1,15 @@
 package inaka.com.mangosta.activities;
 
+import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -53,6 +59,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -66,11 +73,14 @@ import inaka.com.mangosta.chat.RoomsListManager;
 import inaka.com.mangosta.models.Chat;
 import inaka.com.mangosta.models.ChatMessage;
 import inaka.com.mangosta.models.Event;
+import inaka.com.mangosta.models.PendingImgMsg;
 import inaka.com.mangosta.models.User;
 import inaka.com.mangosta.notifications.MessageNotifications;
 import inaka.com.mangosta.realm.RealmManager;
+import inaka.com.mangosta.utils.FileUtils;
 import inaka.com.mangosta.utils.Preferences;
 import inaka.com.mangosta.xmpp.RosterManager;
+import inaka.com.mangosta.xmpp.upload.UploadRequestIQ;
 import inaka.com.mangosta.xmpp.XMPPSession;
 import inaka.com.mangosta.xmpp.XMPPUtils;
 import io.realm.Realm;
@@ -89,6 +99,9 @@ public class ChatActivity extends BaseActivity {
 
     @BindView(R.id.stickersRecyclerView)
     RecyclerView stickersRecyclerView;
+
+    @BindView(R.id.chooseImage)
+    ImageButton chooseImageButton;
 
     @BindView(R.id.chatSendMessageButton)
     ImageButton chatSendMessageButton;
@@ -121,13 +134,7 @@ public class ChatActivity extends BaseActivity {
     private ChatMessagesAdapter mMessagesAdapter;
     LinearLayoutManager mLayoutManagerMessages;
 
-    private String[] mStickersNameList = {
-            "base",
-            "pliiz",
-            "bigsmile",
-            "pleure",
-            "snif"
-    };
+    private String[] mStickersNameList = {"base", "pliiz", "bigsmile", "pleure", "snif"};
     private StickersAdapter mStickersAdapter;
     LinearLayoutManager mLayoutManagerStickers;
 
@@ -146,6 +153,10 @@ public class ChatActivity extends BaseActivity {
     final private int VISIBLE_BEFORE_LOAD = 10;
     final private int ITEMS_PER_PAGE = 15;
     final private int PAGES_TO_LOAD = 3;
+
+    final private int REQUEST_CODE_READ_IMAGES = 101;
+
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     SwipeRefreshLayout.OnRefreshListener mSwipeRefreshListener;
 
@@ -210,11 +221,14 @@ public class ChatActivity extends BaseActivity {
             }
         });
 
-        loadMessagesSwipeRefreshLayout.setColorSchemeResources(
-                android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
+        chooseImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                choosePhoto();
+            }
+        });
+
+        loadMessagesSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
 
         mSwipeRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -544,9 +558,7 @@ public class ChatActivity extends BaseActivity {
         if (dy < 0) {
             int visibleItemCount = recyclerView.getChildCount();
             int totalItemCount = mLayoutManagerMessages.getItemCount();
-            boolean countVisibleToLoadMore = (totalItemCount - visibleItemCount
-                    - (totalItemCount - lastVisibleItem))
-                    <= VISIBLE_BEFORE_LOAD;
+            boolean countVisibleToLoadMore = (totalItemCount - visibleItemCount - (totalItemCount - lastVisibleItem)) <= VISIBLE_BEFORE_LOAD;
 
             if (countVisibleToLoadMore && !loadMessagesSwipeRefreshLayout.isRefreshing()) {
                 loadMessagesSwipeRefreshLayout.post(new Runnable() {
@@ -649,8 +661,7 @@ public class ChatActivity extends BaseActivity {
         try {
             RosterManager.getInstance().removeContact(userNotContact);
             setMenuChatNotContact();
-            Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_removed_from_contacts),
-                    userNotContact.getLogin()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_removed_from_contacts), userNotContact.getLogin()), Toast.LENGTH_SHORT).show();
         } catch (SmackException.NotLoggedInException | InterruptedException |
                  SmackException.NotConnectedException | XMPPException.XMPPErrorException |
                  XmppStringprepException | SmackException.NoResponseException e) {
@@ -664,8 +675,7 @@ public class ChatActivity extends BaseActivity {
         try {
             RosterManager.getInstance().addContact(userContact);
             setMenuChatWithContact();
-            Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_added_to_contacts),
-                    userContact.getLogin()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, String.format(Locale.getDefault(), getString(R.string.user_added_to_contacts), userContact.getLogin()), Toast.LENGTH_SHORT).show();
         } catch (SmackException.NotLoggedInException | InterruptedException |
                  SmackException.NotConnectedException | XMPPException.XMPPErrorException |
                  XmppStringprepException | SmackException.NoResponseException e) {
@@ -679,9 +689,7 @@ public class ChatActivity extends BaseActivity {
 
         final EditText roomNameEditText = new EditText(this);
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.setMargins(10, 0, 10, 0);
         roomNameEditText.setLayoutParams(lp);
         roomNameEditText.setHint(getString(R.string.enter_room_name_hint));
@@ -689,55 +697,47 @@ public class ChatActivity extends BaseActivity {
 
         linearLayout.addView(roomNameEditText);
 
-        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(ChatActivity.this)
-                .setTitle(getString(R.string.room_name))
-                .setMessage(getString(R.string.enter_new_room_name))
-                .setView(linearLayout)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        final String chatName = roomNameEditText.getText().toString();
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(ChatActivity.this).setTitle(getString(R.string.room_name)).setMessage(getString(R.string.enter_new_room_name)).setView(linearLayout).setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                final String chatName = roomNameEditText.getText().toString();
 
-                        Tasks.executeInBackground(ChatActivity.this, new BackgroundWork<Object>() {
-                            @Override
-                            public Object doInBackground() throws Exception {
-                                if (!Preferences.isTesting()) {
-                                    MultiUserChatLight multiUserChatLight = XMPPSession.getInstance().getMUCLightManager().getMultiUserChatLight(JidCreate.from(mChatJID).asEntityBareJidIfPossible());
-                                    multiUserChatLight.changeRoomName(chatName);
-                                }
-                                return null;
-                            }
-                        }, new Completion<Object>() {
-                            @Override
-                            public void onSuccess(Context context, Object result) {
-                                Toast.makeText(ChatActivity.this,
-                                        getString(R.string.room_name_changed),
-                                        Toast.LENGTH_SHORT).show();
-
-                                Realm realm = getRealm();
-                                realm.beginTransaction();
-                                mChat.setName(chatName);
-                                realm.commitTransaction();
-                                realm.close();
-
-                                getSupportActionBar().setTitle(chatName);
-                            }
-
-                            @Override
-                            public void onError(Context context, Exception e) {
-                                Toast.makeText(ChatActivity.this, R.string.error, Toast.LENGTH_SHORT).show();
-                                e.printStackTrace();
-                            }
-                        });
-                        dialog.dismiss();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                Tasks.executeInBackground(ChatActivity.this, new BackgroundWork<Object>() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    public Object doInBackground() throws Exception {
+                        if (!Preferences.isTesting()) {
+                            MultiUserChatLight multiUserChatLight = XMPPSession.getInstance().getMUCLightManager().getMultiUserChatLight(JidCreate.from(mChatJID).asEntityBareJidIfPossible());
+                            multiUserChatLight.changeRoomName(chatName);
+                        }
+                        return null;
                     }
-                })
-                .show();
+                }, new Completion<Object>() {
+                    @Override
+                    public void onSuccess(Context context, Object result) {
+                        Toast.makeText(ChatActivity.this, getString(R.string.room_name_changed), Toast.LENGTH_SHORT).show();
+
+                        Realm realm = getRealm();
+                        realm.beginTransaction();
+                        mChat.setName(chatName);
+                        realm.commitTransaction();
+                        realm.close();
+
+                        getSupportActionBar().setTitle(chatName);
+                    }
+
+                    @Override
+                    public void onError(Context context, Exception e) {
+                        Toast.makeText(ChatActivity.this, R.string.error, Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                });
+                dialog.dismiss();
+            }
+        }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
     }
@@ -747,9 +747,7 @@ public class ChatActivity extends BaseActivity {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         final EditText roomSubjectEditText = new EditText(this);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.setMargins(10, 0, 10, 0);
         roomSubjectEditText.setLayoutParams(lp);
         roomSubjectEditText.setHint(getString(R.string.enter_room_subject_hint));
@@ -757,54 +755,46 @@ public class ChatActivity extends BaseActivity {
 
         linearLayout.addView(roomSubjectEditText);
 
-        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(ChatActivity.this)
-                .setTitle(getString(R.string.room_subject))
-                .setMessage(getString(R.string.enter_new_room_subject))
-                .setView(linearLayout)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        final String subject = roomSubjectEditText.getText().toString();
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(ChatActivity.this).setTitle(getString(R.string.room_subject)).setMessage(getString(R.string.enter_new_room_subject)).setView(linearLayout).setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                final String subject = roomSubjectEditText.getText().toString();
 
-                        Tasks.executeInBackground(ChatActivity.this, new BackgroundWork<Object>() {
-                            @Override
-                            public Object doInBackground() throws Exception {
-                                if (!Preferences.isTesting()) {
-                                    MultiUserChatLight multiUserChatLight = XMPPSession.getInstance().getMUCLightManager().getMultiUserChatLight(JidCreate.from(mChatJID).asEntityBareJidIfPossible());
-                                    multiUserChatLight.changeSubject(subject);
-                                }
-                                return null;
-                            }
-                        }, new Completion<Object>() {
-                            @Override
-                            public void onSuccess(Context context, Object result) {
-                                Toast.makeText(ChatActivity.this,
-                                        getString(R.string.room_subject_changed),
-                                        Toast.LENGTH_SHORT).show();
-
-                                Realm realm = getRealm();
-                                realm.beginTransaction();
-                                mChat.setSubject(subject);
-                                realm.commitTransaction();
-                                realm.close();
-
-                                getSupportActionBar().setSubtitle(subject);
-                            }
-
-                            @Override
-                            public void onError(Context context, Exception e) {
-                                Toast.makeText(ChatActivity.this, R.string.error, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        dialog.dismiss();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                Tasks.executeInBackground(ChatActivity.this, new BackgroundWork<Object>() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    public Object doInBackground() throws Exception {
+                        if (!Preferences.isTesting()) {
+                            MultiUserChatLight multiUserChatLight = XMPPSession.getInstance().getMUCLightManager().getMultiUserChatLight(JidCreate.from(mChatJID).asEntityBareJidIfPossible());
+                            multiUserChatLight.changeSubject(subject);
+                        }
+                        return null;
                     }
-                })
-                .show();
+                }, new Completion<Object>() {
+                    @Override
+                    public void onSuccess(Context context, Object result) {
+                        Toast.makeText(ChatActivity.this, getString(R.string.room_subject_changed), Toast.LENGTH_SHORT).show();
+
+                        Realm realm = getRealm();
+                        realm.beginTransaction();
+                        mChat.setSubject(subject);
+                        realm.commitTransaction();
+                        realm.close();
+
+                        getSupportActionBar().setSubtitle(subject);
+                    }
+
+                    @Override
+                    public void onError(Context context, Exception e) {
+                        Toast.makeText(ChatActivity.this, R.string.error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+                dialog.dismiss();
+            }
+        }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
     }
@@ -828,15 +818,30 @@ public class ChatActivity extends BaseActivity {
 
     }
 
+    private void choosePhoto() {
+        if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+            }, REQUEST_CODE_READ_IMAGES);
+        } else {
+            openGallery();
+        }
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
     private void sendTextMessage() {
         cancelMessageNotificationsForChat();
-        if (!XMPPSession.isInstanceNull()
-                && (XMPPSession.getInstance().isConnectedAndAuthenticated() || Preferences.isTesting())) {
+        if (!XMPPSession.isInstanceNull() && (XMPPSession.getInstance().isConnectedAndAuthenticated() || Preferences.isTesting())) {
             String content = chatSendMessageEditText.getText().toString().trim().replaceAll("\n\n+", "\n\n");
 
             if (!TextUtils.isEmpty(content)) {
-                String messageId = RealmManager.getInstance()
-                        .saveMessageLocally(mChat, mChatJID, content, ChatMessage.TYPE_CHAT);
+                String messageId = RealmManager.getInstance().saveMessageLocally(mChat, mChatJID, content, ChatMessage.TYPE_CHAT);
                 mChat = getChatFromRealm();
                 mRoomManager.sendTextMessage(messageId, mChatJID, content, mChat.getType());
                 chatSendMessageEditText.setText("");
@@ -844,6 +849,20 @@ public class ChatActivity extends BaseActivity {
             }
         }
     }
+
+    private void sendImageMessage(PendingImgMsg msg) {
+        cancelMessageNotificationsForChat();
+        if (!XMPPSession.isInstanceNull() && (XMPPSession.getInstance().isConnectedAndAuthenticated() || Preferences.isTesting())) {
+            String messageId = RealmManager.getInstance().saveMessageLocally(mChat, mChatJID, msg.imgUrl, ChatMessage.TYPE_IMAGE);
+            msg.messageId = messageId;
+            XMPPSession.getInstance().updatePendingImgMsg(msg);
+            mChat = getChatFromRealm();
+            mRoomManager.sendImageMessage(messageId, msg.jid, msg.imgUrl, mChat.getType());
+            refreshMessagesAndScrollToEnd();
+            XMPPSession.getInstance().removePendingImgMsg(msg.iqId);
+        }
+    }
+
 
     private void leaveChat() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -1074,12 +1093,16 @@ public class ChatActivity extends BaseActivity {
                     }
                 });
                 break;
+            case IMAGE_UPLOADED:
+                if (event.getData() instanceof PendingImgMsg) {
+                    sendImageMessage((PendingImgMsg) event.getData());
+                }
+                break;
         }
     }
 
     private void stickerSent(String imageName) {
-        String messageId = RealmManager.getInstance()
-                .saveMessageLocally(mChat, mChatJID, imageName, ChatMessage.TYPE_STICKER);
+        String messageId = RealmManager.getInstance().saveMessageLocally(mChat, mChatJID, imageName, ChatMessage.TYPE_STICKER);
         mChat = getChatFromRealm();
         mRoomManager.sendStickerMessage(messageId, mChatJID, imageName, mChat.getType());
         stickersRecyclerView.setVisibility(View.GONE);
@@ -1160,6 +1183,75 @@ public class ChatActivity extends BaseActivity {
                 e.printStackTrace();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                Log.d("testImage", "onActivityResult: uri: " + uri);
+                sendImageReqIq(mChatJID, uri);
+            }
+        }
+    }
+
+    private void sendImageReqIq(String jid, Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+
+        String fileName = FileUtils.getFileName(contentResolver, uri);
+        long fileSize = FileUtils.getFileSize(contentResolver, uri);
+        String mimeType = FileUtils.getMimeType(contentResolver, uri);
+
+        String requestId = UUID.randomUUID().toString(); // 请求ID
+
+        Log.d("SMACK", "sendImageReqIq: requestId: " + requestId);
+       /* String stanza = String.format(
+                "<iq id='%s' to='upload.aws-dev.com' type='get'>" +
+                        "<request xmlns='urn:xmpp:http:upload:0' filename='%s' size='%d' content-type='%s'/>" +
+                        "</iq>",
+                requestId, fileName, fileSize, mimeType
+        );*/
+
+        // 发送 IQ stanza
+        UploadRequestIQ uploadRequest = new UploadRequestIQ(fileName, (int) fileSize, mimeType);
+        uploadRequest.setStanzaId(requestId);
+        uploadRequest.setTo("upload.aws-dev.com"); // 设置目标地址
+
+        // 发送IQ请求
+        try {
+            XMPPSession.getInstance().sendStanza(uploadRequest);
+            PendingImgMsg msg = new PendingImgMsg();
+            msg.iqId = requestId;
+            msg.uri = uri;
+            msg.jid = jid;
+
+            XMPPSession.getInstance().putPendingImgMsg(requestId, msg);
+        } catch (Exception e) {
+            Log.e("testImage", "sendImageReqIq: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Uri 转 绝对路径
+     */
+    private String getFilePathFromContentUri(Uri uri) {
+        if (uri == null) return null;
+        String filePath = null;
+        try {
+            String[] projection = new String[]{MediaStore.MediaColumns.DATA};
+            Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+            //也可用下面的方法拿到cursor
+            if (cursor.moveToFirst() == true) {
+                int index = cursor.getColumnIndex(projection[0]);
+                filePath = cursor.getString(index);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return filePath;
     }
 
 }

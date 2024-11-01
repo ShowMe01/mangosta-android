@@ -15,12 +15,14 @@ public class Event {
         PRESENCE_RECEIVED,
         PRESENCE_SUBSCRIPTION_REQUEST,
         REFRESH_UNREAD_MESSAGES_COUNT,
-        ROSTER_CHANGED
+        ROSTER_CHANGED,
+        IMAGE_UPLOADED,
     }
 
     private Type mType;
     private String mImageName;
     private Jid mJidSender;
+    private Object mData;
 
     public Event() {
 
@@ -28,6 +30,11 @@ public class Event {
 
     public Event(Type type) {
         this.mType = type;
+    }
+
+    public Event(Type type, Object data) {
+        this.mType = type;
+        this.mData = data;
     }
 
     public Event(Type type, String imageName) {
@@ -50,6 +57,10 @@ public class Event {
 
     public Jid getJidSender() {
         return mJidSender;
+    }
+
+    public Object getData() {
+        return mData;
     }
 
     public void post() {

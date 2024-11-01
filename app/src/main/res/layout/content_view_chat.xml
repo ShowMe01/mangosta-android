@@ -65,8 +65,8 @@
         android:background="@color/white_pressed"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
-        android:paddingEnd="5dp"
         android:paddingStart="0dp"
+        android:paddingEnd="5dp"
         android:weightSum="1">
 
         <ImageButton
@@ -76,6 +76,14 @@
             android:layout_gravity="center_vertical"
             android:background="@android:color/transparent"
             android:src="@mipmap/ic_stickers_menu" />
+
+        <ImageButton
+            android:id="@+id/chooseImage"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_vertical"
+            android:background="@android:color/transparent"
+            android:src="@drawable/baseline_add_photo_alternate_24" />
 
         <EditText
             android:id="@+id/chatSendMessageEditText"

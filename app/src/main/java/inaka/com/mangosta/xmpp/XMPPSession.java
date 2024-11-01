@@ -1,5 +1,6 @@
 package inaka.com.mangosta.xmpp;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -7,11 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+
 
 import org.jivesoftware.smack.AbstractConnectionClosedListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -26,6 +28,7 @@ import org.jivesoftware.smack.packet.ErrorIQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.packet.UnparsedIQ;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tbr.TBRManager;
@@ -107,19 +110,29 @@ import inaka.com.mangosta.models.BlogPost;
 import inaka.com.mangosta.models.Chat;
 import inaka.com.mangosta.models.ChatMessage;
 import inaka.com.mangosta.models.Event;
+import inaka.com.mangosta.models.PendingImgMsg;
 import inaka.com.mangosta.notifications.BlogPostNotifications;
 import inaka.com.mangosta.notifications.MessageNotifications;
 import inaka.com.mangosta.notifications.RosterNotifications;
 import inaka.com.mangosta.realm.RealmManager;
 import inaka.com.mangosta.services.XMPPSessionService;
+import inaka.com.mangosta.utils.FileUtils;
 import inaka.com.mangosta.utils.MangostaApplication;
 import inaka.com.mangosta.utils.Preferences;
 import inaka.com.mangosta.utils.TimeCalculation;
+import inaka.com.mangosta.xmpp.extension.OobExtension;
+import inaka.com.mangosta.xmpp.extension.OobExtensionProvider;
 import inaka.com.mangosta.xmpp.microblogging.elements.PostEntryExtension;
 import inaka.com.mangosta.xmpp.microblogging.elements.PublishCommentExtension;
 import inaka.com.mangosta.xmpp.microblogging.elements.PublishPostExtension;
 import inaka.com.mangosta.xmpp.microblogging.providers.PostEntryProvider;
+import inaka.com.mangosta.xmpp.upload.UploadResultIQ;
 import io.realm.Realm;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -158,6 +171,8 @@ public class XMPPSession {
     private static final Object LOCK_MESSAGES_TO_DELETE_IDS_LIST = new Object() {
     };
     private List<String> messagesToDeleteIds = new ArrayList<>();
+
+    private HashMap<String, PendingImgMsg> uploadPicMap = new HashMap<>();
 
     private boolean connectionDoneOnce = false;
 
@@ -327,8 +342,27 @@ public class XMPPSession {
 //                            e.printStackTrace();
 //                        }
 //                    }
-                }
+                } else if (stanza instanceof UnparsedIQ) {
+                    UnparsedIQ iq = (UnparsedIQ) stanza;
+                    Log.d("SMACK", "processPacket: iq: " + iq);
+                    if (iq.getChildElementName().equals("slot") &&
+                            iq.getChildElementNamespace().equals("urn:xmpp:http:upload:0")) {
+                        try {
+                            UploadResultIQ resultIQ = UploadResultIQ.from(iq);
+                            String putUrl = resultIQ.getPutUrl();
+                            String getUrl = resultIQ.getGetUrl();
 
+                            PendingImgMsg pendingImgMsg = getPendingImgMsg(resultIQ.getStanzaId());
+                            pendingImgMsg.imgUrl = getUrl;
+                            Uri uri = pendingImgMsg.uri;
+                            Log.d("SMACK", "processPacket: uri: " + uri + " id: " + resultIQ.getStanzaId() + " , putUrl: " + putUrl + " , getUrl : " + getUrl);
+                            updatePendingImgMsg(pendingImgMsg);
+                            uploadImageToServer(pendingImgMsg, putUrl, uri);
+                        } catch (Exception e) {
+                            Log.e("SMACK", e.getMessage());
+                        }
+                    }
+                }
             }
 
             private void processUnsubscribePresence(Presence presence) throws SmackException.NotConnectedException, InterruptedException, SmackException.NotLoggedInException, XMPPException.XMPPErrorException, SmackException.NoResponseException, XmppStringprepException {
@@ -410,6 +444,36 @@ public class XMPPSession {
         addExtensions();
 
         receiveBlogPosts();
+    }
+
+    private void uploadImageToServer(PendingImgMsg pendingImgMsg, String putUrl, Uri uri) {
+        // 从 Uri 获取文件
+        ContentResolver contentResolver = MangostaApplication.getInstance().getContentResolver();
+        File file = new File(FileUtils.getRealPathFromUri(contentResolver, uri)); // 替换为获取文件路径的实际方法
+
+        OkHttpClient client = new OkHttpClient();
+        MediaType mediaType = MediaType.parse(FileUtils.getMimeType(contentResolver, uri));
+        // 创建 RequestBody 和 MultipartBody.Part
+        RequestBody requestBody = RequestBody.create(mediaType, file);
+        Request request = new Request.Builder()
+                .url(putUrl)
+                .put(requestBody)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                Log.d("SMACK", "uploadFileToServer: success " + response.body().toString());
+                pendingImgMsg.status = PendingImgMsg.UPLOADED;
+                updatePendingImgMsg(pendingImgMsg);
+                new Event(Event.Type.IMAGE_UPLOADED, pendingImgMsg).post();
+            } else {
+                Log.d("SMACK", "uploadFileToServer: code: " + response.code() + " msg: " + response.message());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     public void backgroundRelogin() {
@@ -613,6 +677,7 @@ public class XMPPSession {
     private void addExtensions() {
         // Microblogging
         ProviderManager.addExtensionProvider(PostEntryExtension.ELEMENT, PostEntryExtension.NAMESPACE, new PostEntryProvider());
+        ProviderManager.addExtensionProvider(OobExtension.ELEMENT, OobExtension.NAMESPACE, new OobExtensionProvider());
     }
 
     public MultiUserChatLightManager getMUCLightManager() {
@@ -927,10 +992,15 @@ public class XMPPSession {
         chatMessage.setStatus(ChatMessage.STATUS_SENT);
         chatMessage.setUnread(true);
 
-        if (isBoBMessage(message)) {
+        Log.d("SMACK", "manageMessageReceived: isOobMessage: " + isOobMessage(message));
+        if (isBobMessage(message)) {
             BoBExtension bobExtension = BoBExtension.from(message);
             chatMessage.setContent(Base64.decodeToString(bobExtension.getBoBHash().getHash()));
             chatMessage.setType(ChatMessage.TYPE_STICKER);
+        } else if (isOobMessage(message)) {
+            String imageUrl = OobExtension.fromMessage(message).getUrl();
+            chatMessage.setContent(imageUrl);
+            chatMessage.setType(ChatMessage.TYPE_IMAGE);
         } else {
             chatMessage.setContent(message.getBody());
             chatMessage.setType(ChatMessage.TYPE_CHAT);
@@ -962,8 +1032,12 @@ public class XMPPSession {
         realm.close();
     }
 
-    private boolean isBoBMessage(Message message) {
+    private boolean isBobMessage(Message message) {
         return message.hasExtension(BoBExtension.ELEMENT, BoBExtension.NAMESPACE);
+    }
+
+    private boolean isOobMessage(Message message) {
+        return message.hasExtension(OobExtension.ELEMENT, OobExtension.NAMESPACE);
     }
 
     private String assignMessageId(Message message) {
@@ -981,7 +1055,7 @@ public class XMPPSession {
         ChatMessage chatMessage = realm.where(ChatMessage.class).equalTo("messageId", messageId).findFirst();
         chatMessage.setStatus(ChatMessage.STATUS_SENT);
 
-        if (isBoBMessage(message)) {
+        if (isBobMessage(message)) {
             BoBExtension bobExtension = BoBExtension.from(message);
             chatMessage.setContent(Base64.decodeToString(bobExtension.getBoBHash().getHash()));
         } else {
@@ -1214,5 +1288,24 @@ public class XMPPSession {
             InterruptedException, SmackException.NoResponseException {
         getBlockingCommandManager().unblockAll();
     }
+
+    public void putPendingImgMsg(String iqId, PendingImgMsg msg) {
+        uploadPicMap.put(iqId, msg);
+    }
+
+    public void updatePendingImgMsg(PendingImgMsg msg) {
+        if (msg.iqId != null) {
+            uploadPicMap.put(msg.iqId, msg);
+        }
+    }
+
+    public PendingImgMsg removePendingImgMsg(String id) {
+        return uploadPicMap.remove(id);
+    }
+
+    public PendingImgMsg getPendingImgMsg(String id) {
+        return uploadPicMap.get(id);
+    }
+
 
 }

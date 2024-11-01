@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +46,8 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
     private final int VIEW_TYPE_CHAT_ME_MESSAGE = 1;
     private final int VIEW_TYPE_STICKER_MESSAGE = 2;
     private final int VIEW_TYPE_UNREAD_MESSAGES = 3;
+
+    private final int VIEW_TYPE_IMAGE_MESSAGE = 4;
 
     private Context mContext;
     private List<ChatMessage> mMessages;
@@ -101,6 +104,10 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
                 case ChatMessage.TYPE_STICKER:
                     viewType = VIEW_TYPE_STICKER_MESSAGE;
                     break;
+
+                case ChatMessage.TYPE_IMAGE:
+                    viewType = VIEW_TYPE_IMAGE_MESSAGE;
+                    break;
             }
         }
 
@@ -132,7 +139,10 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
                 View viewUnreadMessages = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_item_unread_messages, parent, false);
                 viewHolder = new UnreadMessagesViewHolder(viewUnreadMessages, mContext);
                 break;
-
+            case VIEW_TYPE_IMAGE_MESSAGE:
+                View imageView = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_item_image_message, parent, false);
+                viewHolder = new ImageMessageViewHolder(imageView, mContext);
+                break;
             default:
                 viewHolder = null;
                 break;
@@ -178,6 +188,9 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
 
                 case ChatMessage.TYPE_STICKER:
                     ((StickerMessageViewHolder) holder).bind(chatMessage);
+                    break;
+                case ChatMessage.TYPE_IMAGE:
+                    ((ImageMessageViewHolder) holder).bind(chatMessage);
                     break;
             }
 
@@ -370,6 +383,74 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
                 return;
             }
             meMessageContentTextView.setText(chatMessage.getMeContent());
+        }
+
+    }
+
+    public static class ImageMessageViewHolder extends ChatMessagesAdapter.ViewHolder {
+
+        @BindView(R.id.stickerSenderTextView)
+        TextView stickerSenderTextView;
+
+        @BindView(R.id.stickerCreatedAtTextView)
+        TextView stickerCreatedAtTextView;
+
+        @BindView(R.id.stickerImageView)
+        ImageView stickerImageView;
+
+        @BindView(R.id.stickerLayout)
+        LinearLayout stickerLayout;
+
+        @BindView(R.id.stickerMainLayout)
+        LinearLayout stickerMainLayout;
+
+        private Context mContext;
+
+        private ImageMessageViewHolder(View view, Context context) {
+            super(view);
+            ButterKnife.bind(this, view);
+            this.mContext = context;
+        }
+
+        public void bind(ChatMessage chatMessage) {
+            if (chatMessage == null) {
+                return;
+            }
+
+            stickerCreatedAtTextView.setText(TimeCalculation.getTimeStringAgoSinceDate(mContext, chatMessage.getDate()));
+            stickerSenderTextView.setText(chatMessage.getUserSender());
+
+
+            String url = chatMessage.getContent();
+
+            if (!TextUtils.isEmpty(url)) {
+                Picasso.with(mContext).load(url).noFade().fit().into(stickerImageView);
+//                Picasso.with(mContext).load(resourceId).noFade().fit().into(stickerImageView);
+            }
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+            LinearLayout.LayoutParams paramsMargins = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            Preferences preferences = Preferences.getInstance();
+            boolean messageByUser = chatMessage.getUserSender().equals(XMPPUtils.fromJIDToUserName(preferences.getUserXMPPJid()));
+
+            if (messageByUser) {
+                paramsMargins.setMargins(0, 5, 15, 5);
+                params.gravity = Gravity.END;
+                stickerLayout.setBackground(mContext.getResources().getDrawable(R.drawable.balloon_outgoing_normal));
+            } else {
+                paramsMargins.setMargins(15, 5, 0, 5);
+                params.gravity = Gravity.START;
+                stickerLayout.setBackground(mContext.getResources().getDrawable(R.drawable.balloon_incoming_normal));
+            }
+
+            stickerLayout.setLayoutParams(params);
+            stickerMainLayout.setLayoutParams(paramsMargins);
         }
 
     }
